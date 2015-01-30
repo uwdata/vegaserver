@@ -1,0 +1,12 @@
+{
+  "name": "vegaserver",
+  "version": "0.0.1",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.11.1",
+    "vega": "~1.4.3"
+  },
+  "scripts": {
+    "start": "node server.js"
+  }
+}
