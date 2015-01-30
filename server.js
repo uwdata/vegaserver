@@ -15,10 +15,8 @@ app.use(function(req, res, next) {
   var data = '';
   req.setEncoding('utf8');
   req.on('data', function(chunk) {
-   data += chunk;
- });
-
-  console.log("data", data)
+    data += chunk;
+   });
 
   req.on('end', function() {
     if (data) {
@@ -28,41 +26,44 @@ app.use(function(req, res, next) {
   });
 });
 
-// Render vega specification as PNG.
-app.post('/vg2png', function (req, res) {
-  console.log("Rendering a PNG");
-  res.set('Content-Type', 'image/png');
-
-  var spec = JSON.parse(req.body);
-
-  vg.headless.render(
-    {spec: spec, renderer: "canvas"},
-    function(err, data) {
-      if (err) throw err;
-      var stream = data.canvas.createPNGStream();
-      stream
-        .on("data", function(chunk) { res.write(chunk); })
-        .on("end", function() { res.end(); });
-    }
-  );
-});
-
-// Render vega specification as SVG.
+// Render vega specification as SVG or PNG.
+// Set `format` to specify the output format
 // Set `header` to `true` to include XML header and SVG doctype
-app.post('/vg2svg', function (req, res) {
-  console.log("Rendering an SVG");
-  res.set('Content-Type', 'image/svg+xml');
-
+app.post('/', function (req, res, next) {
   var spec = JSON.parse(req.body),
-  header = req.params.header === "true";
+  header = req.params.header === "true",
+  format = req.params.header || "svg";
 
-  vg.headless.render(
-    {spec: spec, renderer:"svg"},
-    function(err, data) {
-      if (err) throw err;
-      res.send((header ? svgHeader : "") + data.svg);
-    }
-  );
+  if (format === "svg") {
+    console.log("Rendering an SVG");
+    res.set('Content-Type', 'image/svg+xml');
+
+    vg.headless.render(
+      {spec: spec, renderer:"svg"},
+      function(err, data) {
+        if (err) return next(err);
+        res.send((header ? svgHeader : "") + data.svg);
+      }
+    );
+
+  } else if (format === "png") {
+    console.log("Rendering a PNG");
+    res.set('Content-Type', 'image/png');
+
+    vg.headless.render(
+      {spec: spec, renderer: "canvas"},
+      function(err, data) {
+        if (err) return next(err);
+        var stream = data.canvas.createPNGStream();
+        stream
+          .on("data", function(chunk) { res.write(chunk); })
+          .on("end", function() { res.end(); });
+      }
+    );
+  } else {
+    res.set('Content-Type', 'text');
+    res.send("Invalid format " + format);
+  }
 });
 
 var server = app.listen(port, function () {
