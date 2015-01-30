@@ -41,10 +41,10 @@ app.post('/vg2png', function (req, res) {
       if (err) throw err;
       var stream = data.canvas.createPNGStream();
       stream
-      .on("data", function(chunk) { res.write(chunk); })
-      .on("end", function() { res.end(); });
+        .on("data", function(chunk) { res.write(chunk); })
+        .on("end", function() { res.end(); });
     }
-    );
+  );
 });
 
 // Render vega specification as SVG.
@@ -62,7 +62,7 @@ app.post('/vg2svg', function (req, res) {
       if (err) throw err;
       res.send((header ? svgHeader : "") + data.svg);
     }
-    );
+  );
 });
 
 var server = app.listen(port, function () {
